@@ -45,7 +45,7 @@ function App() {
   return (
     <div>
       <h1>Controle Plug S</h1>
-      <p>La prise est {isOn ? "allumé" : "éteint"}</p>
+      <p>La prise est {isOn ? "allumée" : "éteinte"}</p>
       <Switch {...label} onChange={toggleSwitch} checked={isOn} />
     </div>
   );
