@@ -6,35 +6,42 @@ import "./App.css";
 
 function App() {
   const [isOn, setIsOn] = useState(false);
-  let label = { inputProps: isOn ? "Éteindre" : "Allumer" };
+  const apiKey =
+    "MWRmYzM2dWlkE62C6C4C76F817CE0A3D2902F5B5D4C115E49B28CF8539114D9246505DE5D368D560D06020A92480";
+  const id = "80646F827174";
 
-  const toggleSwitch = () => {
+  const toggleSwitch = async () => {
     const newState = !isOn;
     setIsOn(newState);
 
-    axios
-      .post(`http://192.168.1.100/relay/0?turn=${newState ? "on" : "off"}`)
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-        setIsOn(!newState);
-      });
+    try {
+      const response = await axios.post(
+        "https://shelly-86-eu.shelly.cloud/device/relay/control",
+        {
+          channel: 0,
+          turn: newState ? "on" : "off",
+          id: id,
+          auth_key: apiKey,
+        }
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+      setIsOn(!newState);
+    }
   };
 
-  const fetchStatus = () => {
-    axios
-      .get("http://192.168.1.100/status")
-      .then((response) => {
-        const status = response.data.relays[0].ison;
-        console.log(status);
-        setIsOn(status);
-        label = { inputProps: isOn ? "Éteindre" : "Allumer" };
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const fetchStatus = async () => {
+    try {
+      const response = await axios.get(
+        `https://shelly-86-eu.shelly.cloud/device/status?id=${id}&auth_key=${apiKey}`
+      );
+      const status = response.data.data.device_status.relays[0].ison;
+      console.log(status);
+      setIsOn(status);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -62,7 +69,7 @@ function App() {
         </svg>
       </div>
       <p>La prise est {isOn ? "allumée" : "éteinte"}</p>
-      <Switch {...label} onChange={toggleSwitch} checked={isOn} />
+      <Switch onChange={toggleSwitch} checked={isOn} />
     </div>
   );
 }
