@@ -6,22 +6,31 @@ import "./App.css";
 
 function App() {
   const [isOn, setIsOn] = useState(false);
+  const [wifi, setWifi] = useState("");
+  const [power, setPower] = useState("");
+
   const apiKey =
-    "MWRmYzM2dWlkE62C6C4C76F817CE0A3D2902F5B5D4C115E49B28CF8539114D9246505DE5D368D560D06020A92480";
-  const id = "80646F827174";
+    "MWNiMjY5dWlk404459961993DCA83AE44BC6E3A6F58906952E7BECA0A5B69DC375C964915ACBC0EA536A0639CB73";
+  const id = "4022d88e30e8";
+  let data = new FormData();
 
   const toggleSwitch = async () => {
     const newState = !isOn;
     setIsOn(newState);
 
+    data.append("channel", "0");
+    data.append("turn", newState ? "on" : "off");
+    data.append("id", id);
+    data.append("auth_key", apiKey);
+
     try {
       const response = await axios.post(
-        "https://shelly-86-eu.shelly.cloud/device/relay/control",
+        "https://shelly-77-eu.shelly.cloud/device/relay/control",
+        data,
         {
-          channel: 0,
-          turn: newState ? "on" : "off",
-          id: id,
-          auth_key: apiKey,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
       console.log(response.data);
@@ -34,11 +43,14 @@ function App() {
   const fetchStatus = async () => {
     try {
       const response = await axios.get(
-        `https://shelly-86-eu.shelly.cloud/device/status?id=${id}&auth_key=${apiKey}`
+        `https://shelly-77-eu.shelly.cloud/device/status?id=${id}&auth_key=${apiKey}`
       );
       const status = response.data.data.device_status.relays[0].ison;
-      console.log(status);
+      const power = response.data.data.device_status.meters[0].power;
+      const wifi = response.data.data.device_status.wifi_sta.ssid;
       setIsOn(status);
+      setPower(power);
+      setWifi(wifi);
     } catch (error) {
       console.error(error);
     }
@@ -69,6 +81,8 @@ function App() {
         </svg>
       </div>
       <p>La prise est {isOn ? "allumée" : "éteinte"}</p>
+      <p>Le ssid est {wifi}</p>
+      <p>La consommation actuelle est de {power}W</p>
       <Switch onChange={toggleSwitch} checked={isOn} />
     </div>
   );
